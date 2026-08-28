@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Python FastAPI service metrics.
+  - job_name: rf-api
+    static_configs:
+      - targets: ["rf-api:8000"]
+
+  # Go P2P mesh service metrics.
+  - job_name: rf-p2p
+    static_configs:
+      - targets: ["rf-p2p:7000"]
+
+  # Go Mission Engine metrics.
+  - job_name: rf-mission
+    static_configs:
+      - targets: ["rf-mission:6000"]
