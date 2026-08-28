@@ -1,0 +1,47 @@
+# Observability add-on for the RF Mission Stack.
+# Start with: docker compose -f monitoring/docker-compose.monitoring.yml up -d
+
+services:
+  # Prometheus collects and stores metrics from the API and Go services.
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: rf-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      # Prometheus scrape configuration.
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Persistent time-series data across container restarts.
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    networks:
+      - rf-network
+
+  # Grafana provides dashboards and alerting over Prometheus metrics.
+  grafana:
+    image: grafana/grafana:latest
+    container_name: rf-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - rf-network
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  rf-network:
+    external: true
